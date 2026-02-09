@@ -50,11 +50,27 @@ build_catalyst() {
     ninja -C "${gen_dir}" framework_objc || exit 1
 }
 
+#build_tvOS() {
+#    local arch=$1
+#    local environment=$2
+#    local gen_dir="${OUTPUT_DIR}/tvos-${arch}-${environment}"
+#    local gen_args="${COMMON_GN_ARGS} target_cpu=\"${arch}\" target_os=\"ios\" target_environment=\"${environment}\" ios_deployment_target=\"12.0\" ios_enable_code_signing=false"
+#    gn gen "${gen_dir}" --args="${gen_args}"
+#    gn args --list ${gen_dir} > ${gen_dir}/gn-args.txt
+#    ninja -C "${gen_dir}" framework_objc || exit 1
+#}
 build_tvOS() {
     local arch=$1
-    local environment=$2   # simulator | device
+    local environment=$2
     local gen_dir="${OUTPUT_DIR}/tvos-${arch}-${environment}"
-    local gen_args="${COMMON_GN_ARGS} target_cpu=\"${arch}\" target_os=\"ios\" target_environment=\"${environment}\" ios_deployment_target=\"12.0\" ios_enable_code_signing=false"
+    local gen_args="${COMMON_GN_ARGS} \
+      use_blink=true \
+      target_cpu=\"${arch}\" \
+      target_os=\"ios\" \
+      target_platform=\"tvos\" \
+      target_environment=\"${environment}\" \
+      ios_deployment_target=\"12.0\" \
+      ios_enable_code_signing=false"
     gn gen "${gen_dir}" --args="${gen_args}"
     gn args --list ${gen_dir} > ${gen_dir}/gn-args.txt
     ninja -C "${gen_dir}" framework_objc || exit 1
