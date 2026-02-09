@@ -54,37 +54,9 @@ build_tvOS() {
     local arch=$1
     local environment=$2   # simulator | device
     local gen_dir="${OUTPUT_DIR}/tvos-${arch}-${environment}"
-
-    # Still target_os="ios" (weird but common for these builds),
-    # then patch the ninjas to AppleTVOS sysroot/flags.
     local gen_args="${COMMON_GN_ARGS} target_cpu=\"${arch}\" target_os=\"ios\" target_environment=\"${environment}\" ios_deployment_target=\"12.0\" ios_enable_code_signing=false"
-
     gn gen "${gen_dir}" --args="${gen_args}"
     gn args --list ${gen_dir} > ${gen_dir}/gn-args.txt
-
-    # Patch the generated ninja files to tvOS.
-    # Use your earlier script, or inline it.
-
-    #gn_out_path=$1
-
-    iphone_sysroot=$(grep 'developer/sdks/iphoneos' ${gen_dir}/obj/pc/peerconnection.ninja | awk '{ print $31 }')
-    tv_sysroot=/applications/xcode.app/contents/developer/platforms/appletvos.platform/developer/sdks/appletvos.sdk
-
-    iphone_sysroot_sed=$(echo "${iphone_sysroot//\//\\/}")
-    tv_sysroot_sed=$(echo "${tv_sysroot//\//\\/}")
-
-    ninjas=`find ${gen_dir} -name '*.ninja'`
-    ninjas=$(echo "$ninjas" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-
-    for ninja in $ninjas; do
-      sed -i -- "s/${iphone_sysroot_sed}/${tv_sysroot_sed}/g" $ninja
-      sed -i -- "s/iphoneos-version/appletvos-version/g" $ninja
-    done
-
-
-    #../tvosify-os.sh "${gen_dir}"  # for device
-    # ../tvosify-sim.sh "${gen_dir}" # for simulator
-
     ninja -C "${gen_dir}" framework_objc || exit 1
 }
 
